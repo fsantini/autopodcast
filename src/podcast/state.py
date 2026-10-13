@@ -66,12 +66,14 @@ class State:
         return cur.rowcount
 
     def carryover(self, topic: str, max_age_days: int) -> list[Paper]:
-        """Screened papers waiting for enough company to make an episode. Papers published (or, without a date,
-        first stored) more than ``max_age_days`` ago expire; they stay in the table so they are never rediscovered."""
+        """Screened papers waiting to be used: those saved for the next run, and those still marked 'selected' by a run
+        that never finished (killed, power loss, timeout), because a finished run turns 'selected' into 'used'.
+        Call this before the current run records anything. Papers published (or, without a date, first stored) more than
+        ``max_age_days`` ago expire; they stay in the table so they are never rediscovered."""
         today = date.today()
         waiting, expired = [], []
         for key, data, updated in self.db.execute(
-                "SELECT key, data, updated FROM papers WHERE topic=? AND status='carryover'", (topic,)).fetchall():
+                "SELECT key, data, updated FROM papers WHERE topic=? AND status IN ('carryover', 'selected')", (topic,)).fetchall():
             paper = Paper.model_validate_json(data)
             reference = paper.published or date.fromisoformat(updated[:10])
             (expired if (today - reference).days > max_age_days else waiting).append((key, paper))

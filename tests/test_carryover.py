@@ -139,3 +139,27 @@ def test_state_expiry_uses_updated_date_when_paper_has_no_date(tmp_path, state):
     assert [q.source_id for q in state.carryover("T", 28)] == ["1"]
     state.db.execute("UPDATE papers SET updated=?", ((date.today() - timedelta(days=60)).isoformat() + " 00:00:00",))
     assert state.carryover("T", 28) == []
+
+
+def test_run_killed_during_the_build_does_not_lose_the_papers(tmp_path, state, fake_pipeline):
+    """A hard kill (SIGTERM from `timeout`, power loss) skips the `except Exception` cleanup: the papers stay 'selected'."""
+    c = cfg(tmp_path)
+    fake_pipeline.new = [mk(1), mk(2)]
+
+    def killed(*a, **k):
+        raise KeyboardInterrupt  # not an Exception subclass, so run_topic's error handling does not run
+
+    import podcast.pipeline as pl
+    original, pl.build_episode = pl.build_episode, killed
+    try:
+        with pytest.raises(KeyboardInterrupt):
+            pipeline.run_topic(c, TOPIC, state, "run1")
+    finally:
+        pl.build_episode = original
+    assert statuses(state) == {"x:1": "selected", "x:2": "selected"}
+
+    fake_pipeline.new = []  # the next run finds nothing new, but the interrupted papers are still there
+    _, chosen, episode = pipeline.run_topic(c, TOPIC, state, "run2")
+    assert episode is not None and sorted(fake_pipeline.built[0]) == ["1", "2"]
+    assert statuses(state) == {"x:1": "used", "x:2": "used"}
+    assert fake_pipeline.downloaded == ["1", "2"]  # PDFs were not fetched a second time
