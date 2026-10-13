@@ -134,10 +134,10 @@ Episodes: `built` (audio ready, not uploaded), `published`.
 
 ## Current state and known gaps
 
-Built and verified: discovery from four sources, fuzzy and historical de-duplication, screening, PDF acquisition, NotebookLM build, chunked publish, PHP site with RSS feed, cron wrappers, carry-over and crash recovery. One real episode has been published to the live site, and the feed was prepared for Spotify (cover at least 1400 px, owner email).
+Built and verified: discovery from four sources, fuzzy and historical de-duplication, screening, PDF acquisition, NotebookLM build, chunked publish, PHP site with RSS feed, cron wrappers, carry-over and crash recovery. One real episode has been published to the live site, and the feed is submitted to Spotify and working (the owner confirms).
 
 Known gaps and open points:
-* The `table_prefix` change (`tbl()`, the `schema.sql` placeholders) was only **syntax-checked** here; the planned test against a MySQL that already holds other tables was not run. An episode was later published successfully to the owner's live site, but it is not known whether that deployment already contained the change. Re-run the PHP recipe above before relying on it. The PHP code has **no automated tests**; it was verified manually with scripted requests.
+* The PHP site has **no automated tests**. The owner reports having tested it on their real server; locally, after the `table_prefix` change (`tbl()`, the `schema.sql` placeholders), it was only syntax-checked, and the earlier local MySQL recipe above was last run before that change. After any further PHP change, re-run the recipe or ask the owner to test on the real server.
 * Failure alerts rely on `data/logs/failures.log` and cron mail (`MAILTO`); no push channel is configured.
 * `data/pdfs` and `data/episodes` grow without bound; there is no cleanup.
 * The screening score level drifts over time (see above); there is no automatic recalibration.
