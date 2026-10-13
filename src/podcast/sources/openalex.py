@@ -5,6 +5,7 @@ from datetime import date
 from ..http import get
 from ..licenses import normalize_license
 from ..models import Paper
+from .base import excluded, terms
 
 URL = "https://api.openalex.org/works"
 
@@ -49,11 +50,17 @@ def parse(rec: dict) -> Paper | None:
     )
 
 
+def search_expr(keywords: list[str]) -> str:
+    """OpenAlex boolean search: all words of a keyword (stemmed, any order), phrases only where the user quoted them."""
+    one = lambda t: f'"{t}"' if " " in t else t  # noqa: E731
+    return " OR ".join("(" + " AND ".join(one(t) for t in terms(k)) + ")" for k in keywords)
+
+
 class OpenAlex:
     name = "openalex"
 
     def search(self, client, topic, since, until, limit):
-        search = " OR ".join(f'"{k}"' for k in topic.keywords)
+        search = search_expr(topic.keywords)
         params = {
             "search": search,
             "filter": f"from_publication_date:{since},to_publication_date:{until},open_access.is_oa:true,has_abstract:true",
@@ -71,4 +78,4 @@ class OpenAlex:
             if not nxt or not data.get("results"):
                 break
             params["cursor"] = nxt
-        return [p for p in papers[:limit] if not any(x.lower() in (p.title + p.abstract).lower() for x in topic.exclude)]
+        return [p for p in papers[:limit] if not excluded(topic, p.title + ' ' + p.abstract)]

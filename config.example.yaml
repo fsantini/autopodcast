@@ -3,6 +3,7 @@ window_days: 7
 # licenses: [cc0, cc-by, cc-by-sa]   # optional allow-list; default: any open-access paper with a downloadable PDF
 sources: [europepmc, openalex, arxiv, biorxiv]
 max_results_per_source: 300
+fuzzy_dedupe: true   # merge near-identical titles (e.g. preprint and published version), also against earlier runs
 carryover_days: 28   # papers wait this long for an episode when fewer than min_sources were found (0 = drop them)
 # contact_email: you@example.org        # or CONTACT_EMAIL in .env (polite pool for OpenAlex/Crossref)
 

@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from .config import Config, Topic
-from .dedupe import dedupe
+from .dedupe import dedupe, drop_seen_duplicates
 from .fetch_pdf import download_pdf, is_pdf_file
 from .http import make_client
 from .notebook import build_episode
@@ -35,7 +35,7 @@ def discover(cfg: Config, topic: Topic, today: date | None = None) -> list[Paper
                 continue
             log.info("%s: %d papers", name, len(found))
             papers += found
-    return dedupe(papers)
+    return dedupe(papers, fuzzy=cfg.fuzzy_dedupe)
 
 
 def filter_candidates(cfg: Config, papers: list[Paper]) -> list[Paper]:
@@ -85,6 +85,8 @@ def run_search_and_screen(cfg: Config, topic: Topic, state: State, run_id: str, 
     """Stages 1-2 (+3 when fetch=True). Returns (screened, chosen); chosen is empty unless fetch=True."""
     known = state.known_keys(topic.name)
     candidates = [p for p in filter_candidates(cfg, discover(cfg, topic)) if p.key not in known]
+    if cfg.fuzzy_dedupe:  # e.g. the journal version of a preprint that an earlier run already screened or used
+        candidates = drop_seen_duplicates(candidates, state.known_summaries(topic.name))
     log.info("%d new candidates for %r", len(candidates), topic.name)
     screened = screen(cfg.screening, topic, candidates)
     # papers saved by an earlier run that found too few for an episode: already screened, PDFs usually downloaded

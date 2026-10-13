@@ -62,6 +62,7 @@ class Config(BaseModel):
     licenses: list[str] | None = None  # None = any open-access paper; else e.g. [cc0, cc-by]
     sources: list[str] = Field(default_factory=lambda: ["europepmc", "openalex", "arxiv", "biorxiv"])
     max_results_per_source: int = 300
+    fuzzy_dedupe: bool = True  # also merge near-identical titles (preprint vs published) and skip works already seen
     carryover_days: int = 28  # screened papers wait this long for an episode when too few were found; 0 = drop them
     contact_email: str | None = None
     data_dir: Path = ROOT / "data"

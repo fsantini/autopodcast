@@ -9,18 +9,19 @@ from datetime import date
 from ..http import get
 from ..licenses import normalize_license
 from ..models import Paper
+from .base import excluded, terms
 
 log = logging.getLogger(__name__)
 REST = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 URL = f"{REST}/search"
 
 
-def build_query(keywords: list[str], exclude: list[str], since: date, until: date) -> str:
-    kw = " OR ".join(f'TITLE_ABS:"{k}"' for k in keywords)
-    q = f"({kw}) AND OPEN_ACCESS:y AND FIRST_PDATE:[{since} TO {until}]"
-    if exclude:
-        q += " NOT (" + " OR ".join(f'TITLE_ABS:"{x}"' for x in exclude) + ")"
-    return q
+def build_query(keywords: list[str], since: date, until: date) -> str:
+    """All words of a keyword must occur, anywhere in the record. Deliberately NOT TITLE_ABS: brand-new PMC articles
+    (nearly everything from the last week) have no indexed abstract yet, so a title/abstract search finds almost nothing.
+    The screening step judges relevance from the abstract, which parse() receives from the full-text XML."""
+    kw = " OR ".join("(" + " AND ".join(f'"{t}"' for t in terms(k)) + ")" for k in keywords)
+    return f"({kw}) AND OPEN_ACCESS:y AND FIRST_PDATE:[{since} TO {until}]"
 
 
 def pmc_s3_urls(pmcid: str, versions: tuple[int, ...] = (1, 2)) -> list[str]:
@@ -89,7 +90,7 @@ class EuropePMC:
             return list(pool.map(one, pmcids))
 
     def search(self, client, topic, since, until, limit):
-        params = {"query": build_query(topic.keywords, topic.exclude, since, until),
+        params = {"query": build_query(topic.keywords, since, until),
                   "resultType": "core", "format": "json", "pageSize": min(limit, 100), "cursorMark": "*"}
         papers: list[Paper] = []
         while len(papers) < limit:
@@ -104,4 +105,4 @@ class EuropePMC:
             if not nxt or nxt == params["cursorMark"] or not data["resultList"]["result"]:
                 break
             params["cursorMark"] = nxt
-        return papers[:limit]
+        return [p for p in papers[:limit] if not excluded(topic, p.title + ' ' + p.abstract)]

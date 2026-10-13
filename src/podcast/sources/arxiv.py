@@ -7,6 +7,7 @@ from datetime import date
 
 from ..http import get
 from ..models import Paper
+from .base import excluded, terms
 
 URL = "http://export.arxiv.org/api/query"
 NS = {"a": "http://www.w3.org/2005/Atom", "x": "http://arxiv.org/schemas/atom"}
@@ -65,12 +66,17 @@ def resolve_license(client, paper: Paper) -> str | None:
     return normalize_license(m.group(1)) if m else None
 
 
+def build_query(keywords: list[str], since: date, until: date) -> str:
+    one = lambda t: f'all:"{t}"' if " " in t else f"all:{t}"  # noqa: E731
+    kw = " OR ".join("(" + " AND ".join(one(t) for t in terms(k)) + ")" for k in keywords)
+    return f"({kw}) AND submittedDate:[{since:%Y%m%d}0000 TO {until:%Y%m%d}2359]"
+
+
 class Arxiv:
     name = "arxiv"
 
     def search(self, client, topic, since, until, limit):
-        kw = " OR ".join(f'all:"{k}"' for k in topic.keywords)
-        q = f"({kw}) AND submittedDate:[{since:%Y%m%d}0000 TO {until:%Y%m%d}2359]"
+        q = build_query(topic.keywords, since, until)
         params = {"search_query": q, "start": 0, "max_results": min(limit, 100),
                   "sortBy": "submittedDate", "sortOrder": "descending"}
         papers: list[Paper] = []
@@ -81,4 +87,4 @@ class Arxiv:
                 break
             params["start"] += params["max_results"]
             time.sleep(3)  # arXiv API etiquette
-        return [p for p in papers[:limit] if not any(x.lower() in (p.title + p.abstract).lower() for x in topic.exclude)]
+        return [p for p in papers[:limit] if not excluded(topic, p.title + ' ' + p.abstract)]

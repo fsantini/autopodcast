@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import date
 from pathlib import Path
@@ -77,3 +78,19 @@ class State:
         self.db.executemany("UPDATE papers SET status='expired' WHERE key=? AND topic=?", [(k, topic) for k, _ in expired])
         self.db.commit()
         return [p for _, p in waiting]
+
+    def known_summaries(self, topic: str) -> list[dict]:
+        """Title, authors, DOI and preprint flag of every paper stored for the topic (any status), for fuzzy matching."""
+        try:
+            rows = self.db.execute(
+                "SELECT json_extract(data,'$.title'), json_extract(data,'$.authors'), json_extract(data,'$.doi'), "
+                "json_extract(data,'$.is_preprint') FROM papers WHERE topic=?", (topic,)).fetchall()
+            return [{"title": t, "authors": json.loads(a) if a else [], "doi": d, "is_preprint": bool(p)}
+                    for t, a, d, p in rows if t]
+        except sqlite3.OperationalError:  # SQLite built without JSON support: parse the stored documents instead
+            out = []
+            for (data,) in self.db.execute("SELECT data FROM papers WHERE topic=?", (topic,)):
+                d = json.loads(data)
+                out.append({"title": d["title"], "authors": d.get("authors", []), "doi": d.get("doi"),
+                            "is_preprint": d.get("is_preprint", False)})
+            return out
