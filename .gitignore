@@ -1,0 +1,13 @@
+venv3.13/
+.env
+config.yaml
+data/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+site/config.php
+site/cover.*
+site/media/*
+!site/media/.htaccess
+site/incoming/*
+!site/incoming/.htaccess

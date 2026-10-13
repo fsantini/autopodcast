@@ -1,0 +1,182 @@
+/* Research digests: cyanotype blue on cool paper. Serif for reading, sans for the interface. */
+
+:root {
+  --paper: #f4f6f9;
+  --surface: #ffffff;
+  --ink: #101c2c;
+  --muted: #53647a;
+  --line: #cdd6e2;
+  --prussian: #17356b;      /* the one accent */
+  --prussian-ink: #ffffff;  /* text on the accent */
+  --wash: #e3ebf6;          /* quiet blue tint for hovers and tags */
+  --amber: #8a4b00;         /* preprint warning text */
+  --amber-line: #c97a12;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0b1420;
+    --surface: #111f2f;
+    --ink: #e7edf5;
+    --muted: #9fb0c5;
+    --line: #28394e;
+    --prussian: #9dbdf2;
+    --prussian-ink: #0b1420;
+    --wash: #1a2c42;
+    --amber: #f0b45f;
+    --amber-line: #d89030;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 1rem/1.5 var(--sans);
+}
+
+a { color: var(--prussian); text-underline-offset: 0.18em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--prussian); outline-offset: 2px; }
+
+.wrap { width: min(100% - 2rem, 76rem); margin-inline: auto; }
+
+/* ---- masthead */
+.masthead { border-bottom: 1px solid var(--line); background: var(--surface); }
+.masthead-row {
+  display: flex; flex-wrap: wrap; gap: 1.25rem 2rem;
+  align-items: flex-end; justify-content: space-between;
+  padding-block: 2.25rem 1.75rem;
+}
+.masthead h1 {
+  margin: 0;
+  font: 600 clamp(2rem, 5vw, 3.1rem)/1.05 var(--serif);
+  letter-spacing: -0.02em;
+}
+.masthead h1 a { color: inherit; text-decoration: none; }
+.lede { margin: 0.6rem 0 0; max-width: 38rem; color: var(--muted); font-family: var(--serif); font-size: 1.1rem; }
+
+/* ---- buttons */
+.btn {
+  display: inline-block;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--prussian);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--prussian);
+  font: 600 0.92rem/1.2 var(--sans);
+  text-decoration: none;
+}
+.btn:hover { background: var(--wash); }
+.btn-solid { background: var(--prussian); color: var(--prussian-ink); }
+.btn-solid:hover { background: var(--prussian); filter: brightness(1.12); }
+
+/* ---- topic filter */
+.topics { display: flex; flex-wrap: wrap; gap: 0.25rem 1.4rem; margin-top: 1.5rem; }
+.topics a {
+  padding-block: 0.3rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.topics a:hover { color: var(--ink); }
+.topics a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--prussian); }
+
+.back { margin: 1.5rem 0 0; }
+
+/* ---- legend for the paper rail */
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; margin: 1.5rem 0 1rem; color: var(--muted); font-size: 0.88rem; }
+.rail-key { display: inline-flex; align-items: center; gap: 0.5rem; }
+.rail-key .seg { width: 1.6rem; height: 0.5rem; display: inline-block; }
+
+/* ---- the rail: one segment per paper in the episode */
+.rail { display: flex; gap: 3px; height: 0.5rem; }
+.seg { flex: 1; background: var(--prussian); }
+.seg.pre {
+  background: repeating-linear-gradient(135deg, var(--prussian) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 0 1px var(--prussian);
+}
+
+/* ---- cards */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 25rem), 1fr));
+  gap: 1.25rem;
+  align-items: start; /* opening one card's sources must not stretch its neighbour */
+  margin-bottom: 2.5rem;
+}
+.grid.single { grid-template-columns: minmax(0, 46rem); }
+
+.card {
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.9rem 1.1rem 1.1rem;
+  transition: border-color 0.15s;
+}
+.card:hover, .card:target { border-color: var(--prussian); }
+.card-body { display: flex; flex-direction: column; margin-top: 0.85rem; }
+
+.meta {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.9rem;
+  margin: 0 0 0.55rem;
+  color: var(--muted); font-size: 0.88rem; font-variant-numeric: tabular-nums;
+}
+.meta .topic { font-weight: 700; color: var(--prussian); text-decoration: none; }
+.meta .topic:hover { text-decoration: underline; }
+
+.card h2 { margin: 0 0 0.6rem; font: 600 1.4rem/1.2 var(--serif); letter-spacing: -0.01em; }
+.card h2 a { color: inherit; text-decoration: none; }
+.card h2 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
+
+.summary {
+  margin: 0 0 1rem; max-width: 62ch;
+  font: 1.02rem/1.6 var(--serif);
+  display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+}
+.single .summary { display: block; -webkit-line-clamp: unset; line-clamp: unset; }
+
+audio { width: 100%; }
+
+.actions { margin: 0.9rem 0 0.4rem; }
+
+/* ---- sources (papers + takeaways) */
+.sources { margin-top: 0.8rem; border-top: 1px solid var(--line); }
+.sources > summary {
+  cursor: pointer; padding-block: 0.75rem 0.25rem;
+  color: var(--prussian); font-weight: 600; font-size: 0.93rem;
+}
+.sources h3 { margin: 1rem 0 0.4rem; font: 700 0.95rem/1.3 var(--sans); }
+.takeaways { margin: 0; padding-left: 1.1rem; font: 0.97rem/1.55 var(--serif); }
+.takeaways li + li { margin-top: 0.35rem; }
+.papers { margin: 0; padding-left: 1.3rem; }
+.papers li { padding-block: 0.35rem; }
+.papers li::marker { color: var(--muted); font-variant-numeric: tabular-nums; }
+.cite { display: block; font: 0.97rem/1.45 var(--serif); }
+.tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin-top: 0.2rem; font-size: 0.85rem; }
+.tag {
+  padding: 0.05rem 0.5rem; border-radius: 999px;
+  background: var(--wash); color: var(--muted);
+}
+.tag-pre { background: transparent; color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber-line); }
+.disclaimer { margin: 1rem 0 0; color: var(--muted); font-size: 0.88rem; font-style: italic; }
+
+/* ---- paging, empty state, footer */
+.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 3rem; color: var(--muted); }
+.empty { margin: 3rem 0; max-width: 34rem; }
+.empty h2 { margin: 0 0 0.5rem; font: 600 1.6rem/1.2 var(--serif); }
+.foot { padding-block: 1.5rem 3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; max-width: 76rem; }
+.foot p { margin: 0; max-width: 60ch; }
+
+@media (max-width: 30rem) {
+  .masthead-row { padding-block: 1.5rem 1.25rem; }
+  .btn-solid { width: 100%; text-align: center; }
+}
