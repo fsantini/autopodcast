@@ -19,7 +19,7 @@ class PodcastOptions(BaseModel):
 
 class Topic(BaseModel):
     name: str
-    keywords: list[str]  # OR-ed; use phrases freely
+    keywords: list[str]  # any keyword may match; all words of a keyword must occur (any order), "quoted" = exact phrase
     exclude: list[str] = Field(default_factory=list)
     podcast: PodcastOptions = Field(default_factory=PodcastOptions)
 

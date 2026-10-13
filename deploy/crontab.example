@@ -1,0 +1,13 @@
+# Crontab block for the podcast pipeline. Times are the machine's local time (cron uses the system time zone).
+# Install by adding these lines to `crontab -e`; adjust the path if the project lives elsewhere.
+# The topic names must match `name:` in config.yaml exactly.
+#
+# MAILTO=you@example.org      # optional: cron mails any output, i.e. the one-line failure messages (needs a working local mail setup)
+
+# Episodes, 01:00: Monday / Wednesday / Thursday
+0 1 * * 1  /home/francesco/workspace/auto_scientific_podcast/deploy/run_topic.sh "MSK MRI"
+0 1 * * 3  /home/francesco/workspace/auto_scientific_podcast/deploy/run_topic.sh "Segmentation MRI"
+0 1 * * 4  /home/francesco/workspace/auto_scientific_podcast/deploy/run_topic.sh "AI Recon MRI"
+
+# NotebookLM login keepalive, every 20 minutes
+*/20 * * * *  /home/francesco/workspace/auto_scientific_podcast/deploy/keepalive.sh

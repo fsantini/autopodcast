@@ -30,6 +30,8 @@ site:
 
 topics:
   - name: Muscle MRI
+    # A paper matches if ANY keyword matches. A keyword matches when ALL its words occur (any order, anywhere in the
+    # text); put "double quotes" around words that must stay together as an exact phrase.
     keywords: ["muscle MRI", "skeletal muscle imaging", "quantitative muscle MRI"]
     exclude: []
     podcast:
