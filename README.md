@@ -127,6 +127,10 @@ topics:
   - name: MSK MRI                       # unique; used by --topic and by the cron entries
     keywords: ["muscle MRI", "skeletal muscle imaging", "MSK MRI"]
     exclude: ["case report"]            # optional: drop papers whose title/abstract contain any of these
+    ai_screening:                       # optional: one extra question for the decision model (see below)
+      prompt: "Is this paper about ...?"
+      # levels: [no, yes]              # default; list of 2+ level descriptions, lowest to highest
+      # acceptance: 5                  # default; 0-10
     podcast:
       format: deep_dive                 # deep_dive | brief | critique | debate
       length: default                   # short | default | long
@@ -137,6 +141,16 @@ topics:
 ```
 
 **How keywords match.** A paper matches if *any* keyword matches. A keyword matches when *all of its words* occur, in any order, anywhere in the text: `Deep learning MRI` needs "deep", "learning" and "MRI". Put double quotes around words that must stay together as an exact phrase: `"deep learning" MRI`. (Exact phrases such as `"Deep learning MRI"` almost never occur verbatim, which is why this is not the default.) Matching is broad on purpose, because the screening step judges relevance from the abstract.
+
+**Extra AI question (`ai_screening`, optional).** Keywords only tell that words occur, not what a paper is *about*. With `ai_screening` the decision model also answers your own question for every paper of that topic, and a paper is kept only if the answer reaches `acceptance`:
+
+| Field | Default | Meaning |
+|---|---|---|
+| `prompt` | *(required)* | The question, phrased so that "yes"/"high" means "keep" |
+| `levels` | `[no, yes]` | A list of 2 or more level descriptions from lowest to highest, rescaled to 0-10 like relevance and quality. The default is a plain no/yes question; for more nuance write e.g. `[unrelated, mentions it, partly about it, mainly about it]` |
+| `acceptance` | `5` | Minimum on the 0-10 scale. With the default `[no, yes]`, 5 means halfway to yes |
+
+The answer is shown as `T` in the dry-run table. `config.example.yaml` has a complete example for open science and reproducibility as a meta-topic. Papers screened before you add or change a question keep their earlier verdict.
 
 ### Screening
 
@@ -151,7 +165,7 @@ screening:
   allow_preprints: true
 ```
 
-The model answers four questions per abstract (via OpenRouter's Decisions API, which returns probabilities rather than text): **relevance** and **quality** (5 levels, rescaled to 0-10), the **study type**, and whether the paper is **engaging**. A paper is kept when all three numbers reach their minimum; the best `top_n` by score (`0.6·relevance + 0.4·quality + 2·engaging`) go into the episode.
+The model answers four questions per abstract (five with `ai_screening`) (via OpenRouter's Decisions API, which returns probabilities rather than text): **relevance** and **quality** (5 levels, rescaled to 0-10), the **study type**, and whether the paper is **engaging**. A paper is kept when all three numbers reach their minimum; the best `top_n` by score (`0.6·relevance + 0.4·quality + 2·engaging`) go into the episode.
 
 **Calibrate the thresholds on your own topics** instead of trusting the defaults:
 

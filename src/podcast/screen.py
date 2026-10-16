@@ -48,7 +48,7 @@ STUDY_TYPES = {
 
 
 def build_request(model: str, topic: Topic, paper: Paper) -> dict:
-    return {
+    body = {
         "model": model,
         "state": {
             "podcast_topic": topic.name,
@@ -85,13 +85,17 @@ def build_request(model: str, topic: Topic, paper: Paper) -> dict:
             },
         },
     }
+    if topic.ai_screening:
+        ai = topic.ai_screening
+        body["questions"]["topic_check"] = {"type": "score", "instructions": ai.prompt, "criteria": ai.levels}
+    return body
 
 
 def _scale10(score: float, levels: int) -> float:
     return round(max(0.0, min(float(levels - 1), score)) / (levels - 1) * 10, 2)
 
 
-def parse_response(data: dict, cfg: ScreeningConfig, paper: Paper) -> Screening:
+def parse_response(data: dict, cfg: ScreeningConfig, paper: Paper, topic: Topic | None = None) -> Screening:
     a = data["answers"]
     study = a["study_type"]
     s = Screening(
@@ -103,8 +107,12 @@ def parse_response(data: dict, cfg: ScreeningConfig, paper: Paper) -> Screening:
         model=data.get("model"),
         keep=False,
     )
+    ai = topic.ai_screening if topic else None
+    if ai:
+        s.topic_check = _scale10(a["topic_check"]["score"], len(ai.levels))
     s.keep = (s.relevance >= cfg.min_relevance and s.quality >= cfg.min_quality
-              and s.engaging >= cfg.min_engaging and (cfg.allow_preprints or not paper.is_preprint))
+              and s.engaging >= cfg.min_engaging
+              and (not ai or s.topic_check >= ai.acceptance) and (cfg.allow_preprints or not paper.is_preprint))
     return s
 
 
@@ -118,7 +126,9 @@ def _call(client: httpx.Client, body: dict) -> dict:
 
 def screen_one(client: httpx.Client, cfg: ScreeningConfig, topic: Topic, paper: Paper) -> Screening | None:
     try:
-        return parse_response(_call(client, build_request(cfg.model, topic, paper)), cfg, paper)
+        s = parse_response(_call(client, build_request(cfg.model, topic, paper)), cfg, paper, topic)
+        log.info("screened %s %s %s: %s", "keep" if s.keep else "drop", s.summary().strip(), paper.key, paper.title[:80])
+        return s
     except Exception as e:  # network, malformed answer: leave unscreened so it is retried next run
         log.warning("screening failed for %s: %s", paper.key, e)
         return None

@@ -78,6 +78,11 @@ def acquire(cfg: Config, papers: list[Paper], pdf_dir: Path, use_browser: bool =
             elif path := download_pdf(client, p, pdf_dir, use_browser):
                 p.pdf_path = str(path)
                 chosen.append(p)
+            else:  # the loop moves on to the next-best paper, which takes the place of this one
+                log.warning("PDF not available for %r; trying the next-ranked paper", p.title)
+    for i, p in enumerate(chosen, 1):
+        log.info("selected %d/%d: %s (%s)", i, cfg.screening.top_n, p.title,
+                 p.screening.summary().strip() if p.screening else "no screening")
     return chosen
 
 

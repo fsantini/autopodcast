@@ -17,10 +17,21 @@ class PodcastOptions(BaseModel):
     instructions: str = ""
 
 
+class AiScreening(BaseModel):
+    """An extra question the decision model answers about every paper of a topic (beyond keyword relevance)."""
+
+    prompt: str
+    # level descriptions from lowest to highest (>= 2), rescaled to 0-10 like relevance and quality;
+    # the default is a plain no/yes question
+    levels: list[str] = Field(default_factory=lambda: ["no", "yes"], min_length=2)
+    acceptance: float = Field(5, ge=0, le=10)  # minimum on the 0-10 scale; with no/yes, 5 means "at least halfway to yes"
+
+
 class Topic(BaseModel):
     name: str
     keywords: list[str]  # any keyword may match; all words of a keyword must occur (any order), "quoted" = exact phrase
     exclude: list[str] = Field(default_factory=list)
+    ai_screening: AiScreening | None = None  # optional extra graded check (default no/yes) by the decision model
     podcast: PodcastOptions = Field(default_factory=PodcastOptions)
 
 

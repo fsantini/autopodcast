@@ -41,3 +41,23 @@ topics:
       instructions: >
         Weekly research digest for MR physicists and clinicians. Name each paper's first author and year,
         distinguish peer-reviewed work from preprints, and be critical about limitations.
+
+  - name: Open science and reproducibility
+    keywords: ["open science", "reproducibility", "replicability", "research data sharing", "preregistration", "FAIR data"]
+    exclude: []
+    # Optional extra question for the decision model, answered for every paper of this topic. Keywords only say a
+    # paper mentions the words; this keeps papers ABOUT the subject and drops those that merely use it.
+    ai_screening:
+      prompt: >
+        Does this paper discuss reproducibility and/or open science as a meta-topic (research practice, policy,
+        incentives, meta-research, evidence on how reproducible or open science is), instead of reporting the
+        reproducibility of one particular study or method, or presenting a specific open-source tool?
+      # levels: [no, yes]   # default; any list of 2+ descriptions from lowest to highest, e.g. [none, minor, main, central]
+      # acceptance: 5        # 0-10, default 5 (with [no, yes]: at least halfway to yes)
+    podcast:
+      format: deep_dive
+      length: default
+      language: en
+      instructions: >
+        Weekly digest on meta-research for scientists. Name each paper's first author and year, say what
+        evidence supports each claim about research practice, and be critical about limitations.

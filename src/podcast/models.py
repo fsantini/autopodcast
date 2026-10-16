@@ -12,10 +12,15 @@ class Screening(BaseModel):
     relevance: float  # 0-10
     quality: float  # 0-10
     engaging: float  # probability 0-1 that it makes a good segment
+    topic_check: float | None = None  # 0-10 answer to the topic's ai_screening question, if it has one
     study_type: str = ""
     study_type_confidence: float | None = None
     model: str | None = None  # resolved model snapshot that produced the answer
     keep: bool
+
+    def summary(self) -> str:
+        t = "" if self.topic_check is None else f" T{self.topic_check:>4.1f}"
+        return f"R{self.relevance:>4.1f} Q{self.quality:>4.1f} E{self.engaging:.2f}{t} {self.study_type[:14]:<14}"
 
     @property
     def score(self) -> float:

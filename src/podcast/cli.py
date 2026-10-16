@@ -17,7 +17,7 @@ def _print_table(papers, chosen_keys):
     for p in sorted(papers, key=lambda p: p.screening.score if p.screening else -1, reverse=True):
         s = p.screening
         mark = "*" if p.key in chosen_keys else " "
-        sc = f"R{s.relevance:>4.1f} Q{s.quality:>4.1f} E{s.engaging:.2f} {s.study_type[:14]:<14}" if s else "unscreened".ljust(33)
+        sc = s.summary() if s else "unscreened".ljust(33)
         print(f"{mark} {sc} {p.license or '?':<10} {p.title[:70]}")
 
 
@@ -86,8 +86,10 @@ def main(argv: list[str] | None = None) -> int:
             failures += 1
             continue
         _print_table(screened, {p.key for p in chosen})
-        for p in chosen:
-            print(f"  PDF: {p.pdf_path}")
+        if chosen:
+            print(f"\n  Selected for the podcast ({len(chosen)}):")
+            for i, p in enumerate(chosen, 1):
+                print(f"  {i}. {p.title}\n     {p.screening.summary().strip()} (score {p.screening.score:.2f})\n     PDF: {p.pdf_path}")
         if episode:
             print(f"\n  EPISODE: {episode.title}\n  audio:   {episode.audio_path} ({episode.duration_seconds}s)\n  {episode.summary}")
             built.append(Path(episode.audio_path).parent.resolve())

@@ -61,7 +61,7 @@ Runtime data lives in `data/` (git-ignored): `state.db`, `pdfs/`, `episodes/<run
 * The same logic is applied to history (`drop_seen_duplicates`, using `State.known_summaries`). Changing a threshold requires tests for both merges that must happen and near-misses that must not (`tests/test_dedupe_fuzzy.py`). `fuzzy_dedupe: false` disables it.
 
 ### Screening (`screen.py`)
-* The model is a **decision model** on OpenRouter's `/api/alpha/decisions`, not a chat model: it returns probabilities and positions, never text, so there is **no rationale**. Four questions per abstract (relevance and quality as 5-level scores, study type as a choice, "engaging" as yes/no). Thresholds are applied in code; ranking score is `0.6·R + 0.4·Q + 2·E` (`Screening.score`).
+* The model is a **decision model** on OpenRouter's `/api/alpha/decisions`, not a chat model: it returns probabilities and positions, never text, so there is **no rationale**. Four questions per abstract, plus the optional per-topic `ai_screening` score (relevance and quality as 5-level scores, study type as a choice, "engaging" as yes/no). Thresholds are applied in code; ranking score is `0.6·R + 0.4·Q + 2·E` (`Screening.score`).
 * **Absolute scores drift.** The same papers scored about 3 points lower on a later day with the same reported model snapshot. Do not hard-code assumptions about score levels; the owner tuned `min_*` in `config.yaml` by looking at dry-run tables.
 * A failed screening call returns `None` and the paper is deliberately **not recorded**, so the next run retries it.
 * The default model id is an alias (`~perplexity/pplx-decider-latest`); each `Screening` stores the snapshot that answered (`model`).
