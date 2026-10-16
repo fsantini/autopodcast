@@ -178,3 +178,23 @@ def test_biorxiv_source_filters_with_all_words(monkeypatch):
     monkeypatch.setattr(biorxiv, "get", lambda client, url, **k: R({"collection": recs if "/biorxiv/" in url else [], "messages": [{"total": "2"}]}))
     found = biorxiv.BioMedRxiv().search(None, Topic(name="t", keywords=["Deep learning MRI"]), date(2026, 10, 6), date(2026, 10, 13), 10)
     assert [p.doi for p in found] == ["10.1101/a"]
+
+
+def test_openalex_sends_key_and_hides_it_in_errors(monkeypatch):
+    import httpx
+    monkeypatch.setenv("OPENALEX_API_KEY", "sekret")
+    seen = []
+
+    def handler(req):
+        seen.append(req.url.params)
+        return httpx.Response(401, json={"error": "x"})
+
+    from podcast.config import Topic
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    try:
+        openalex.OpenAlex().search(client, Topic(name="t", keywords=["mri"]), "2026-01-01", "2026-01-08", 50)
+    except RuntimeError as e:
+        assert "sekret" not in str(e)
+    else:
+        raise AssertionError("expected failure")
+    assert seen[0]["api_key"] == "sekret" and seen[0]["per-page"] == "100"

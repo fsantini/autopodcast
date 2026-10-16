@@ -25,7 +25,7 @@ class Topic(BaseModel):
 
 
 class ScreeningConfig(BaseModel):
-    model: str = "~perplexity/pplx-decider-27b-latest"
+    model: str = "~perplexity/pplx-decider-latest"
     min_relevance: float = 6.0  # 0-10
     min_quality: float = 5.0  # 0-10
     min_engaging: float = 0.5  # probability

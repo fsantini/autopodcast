@@ -10,7 +10,7 @@ carryover_days: 28   # papers wait this long for an episode when fewer than min_
 screening:
   # Decision model (Decisions API, probabilities instead of text). "~...-latest" floats to new snapshots;
   # pin e.g. perplexity/pplx-decider-v1.1-27b if thresholds must stay stable.
-  model: "~perplexity/pplx-decider-27b-latest"
+  model: "~perplexity/pplx-decider-latest"
   min_relevance: 6        # 0-10 scale
   min_quality: 5          # 0-10 scale
   min_engaging: 0.5       # probability

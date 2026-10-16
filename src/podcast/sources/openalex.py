@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
 from datetime import date
+
+import httpx
 
 from ..http import get
 from ..licenses import normalize_license
@@ -64,13 +67,22 @@ class OpenAlex:
         params = {
             "search": search,
             "filter": f"from_publication_date:{since},to_publication_date:{until},open_access.is_oa:true,has_abstract:true",
-            "per-page": min(limit, 100), "cursor": "*",
+            # Ask for twice the limit (max 100): some records still lose their abstract in parse(), and a
+            # second page needs cursor paging, which OpenAlex only allows with an API key.
+            "per-page": min(max(limit * 2, 25), 100), "cursor": "*",
         }
+        if key := os.environ.get("OPENALEX_API_KEY"):
+            params["api_key"] = key
         if client.headers.get("User-Agent", "").find("mailto:") >= 0:
             params["mailto"] = client.headers["User-Agent"].split("mailto:")[1].rstrip(")")
         papers: list[Paper] = []
         while len(papers) < limit:
-            data = get(client, URL, params=params).json()
+            try:
+                data = get(client, URL, params=params).json()
+            except httpx.HTTPStatusError as e:
+                # httpx puts the full URL in the message, which would write the key to the logs
+                key = params.get("api_key")
+                raise RuntimeError(str(e).replace(key, "***") if key else str(e)) from None
             for rec in data.get("results", []):
                 if p := parse(rec):
                     papers.append(p)

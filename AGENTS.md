@@ -64,7 +64,7 @@ Runtime data lives in `data/` (git-ignored): `state.db`, `pdfs/`, `episodes/<run
 * The model is a **decision model** on OpenRouter's `/api/alpha/decisions`, not a chat model: it returns probabilities and positions, never text, so there is **no rationale**. Four questions per abstract (relevance and quality as 5-level scores, study type as a choice, "engaging" as yes/no). Thresholds are applied in code; ranking score is `0.6·R + 0.4·Q + 2·E` (`Screening.score`).
 * **Absolute scores drift.** The same papers scored about 3 points lower on a later day with the same reported model snapshot. Do not hard-code assumptions about score levels; the owner tuned `min_*` in `config.yaml` by looking at dry-run tables.
 * A failed screening call returns `None` and the paper is deliberately **not recorded**, so the next run retries it.
-* The default model id is an alias (`~perplexity/pplx-decider-27b-latest`); each `Screening` stores the snapshot that answered (`model`).
+* The default model id is an alias (`~perplexity/pplx-decider-latest`); each `Screening` stores the snapshot that answered (`model`).
 
 ### State machine (`state.py`, `pipeline.py`)
 Table `papers(key, topic, status, data JSON, …)`, primary key `(key, topic)`; table `episodes(run_id, topic, dir, status)`.

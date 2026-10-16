@@ -90,6 +90,7 @@ CONTACT_EMAIL=you@example.org                   # optional; sent to OpenAlex/Eur
 | `OPENROUTER_API_KEY` | yes | Screening with the decision model |
 | `SITE_UPLOAD_TOKEN` | to publish | Shared secret sent as `Authorization: Bearer ...` to `upload.php` |
 | `SITE_UPLOAD_URL` | no | Address of `upload.php`; `site.upload_url` in `config.yaml` takes precedence |
+| `OPENALEX_API_KEY` | recommended | Free key from openalex.org/settings/api; OpenAlex requires it for paging past the first page and gives a larger daily budget |
 | `CONTACT_EMAIL` | no | Identifies you to the public paper APIs (they give faster access to polite clients) |
 
 Generate the token once and use the **same value** in `.env` and in the server's `config.php`:
@@ -141,7 +142,7 @@ topics:
 
 ```yaml
 screening:
-  model: "~perplexity/pplx-decider-27b-latest"   # any OpenRouter "decisions" model
+  model: "~perplexity/pplx-decider-latest"   # any OpenRouter "decisions" model
   min_relevance: 6        # 0-10
   min_quality: 5          # 0-10
   min_engaging: 0.5       # probability 0-1
